@@ -139,19 +139,18 @@ int main(int argc, char **argv) {
     }
   }
 
-  // Таймер для проверки таймаута
   if (timeout > 0) {
     sleep(timeout);
     for (int i = 0; i < pnum; i++) {
       kill(child_pids[i], SIGKILL); // Отправка SIGKILL всем дочерним процессам
     }
   }
-    //else{
+    else{
         while (active_child_processes > 0) {
             wait(NULL);
             active_child_processes -= 1;
         }
-    //}
+    }
 
 
   struct MinMax min_max;
