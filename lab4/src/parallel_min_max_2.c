@@ -16,12 +16,22 @@
 #include "find_min_max_2.h"
 #include "utils_2.h"
 
+pid_t *child_pids;
+int pnum = -1;
+
+void alarmFunc(int a){
+  for (int i = 0; i < pnum; i++) {
+       kill(child_pids[i], SIGKILL);
+  }
+}
+
 int main(int argc, char **argv) {
   int seed = -1;
   int array_size = -1;
-  int pnum = -1;
   bool with_files = false;
   int timeout = -1;
+
+  signal(SIGALRM, alarmFunc);
 
   while (true) {
     int current_optind = optind ? optind : 1;
@@ -104,7 +114,8 @@ int main(int argc, char **argv) {
   if (!with_files) {
     pipe(fd);
   }
-  pid_t child_pids[pnum];
+  child_pids = malloc(sizeof(pid_t) * pnum);
+
   for (int i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
@@ -140,17 +151,20 @@ int main(int argc, char **argv) {
   }
 
   if (timeout > 0) {
-    sleep(timeout);
-    for (int i = 0; i < pnum; i++) {
-      kill(child_pids[i], SIGKILL); // Отправка SIGKILL всем дочерним процессам
+    // sleep(timeout);
+    // for (int i = 0; i < pnum; i++) {
+    //   kill(child_pids[i], SIGKILL); // Отправка SIGKILL всем дочерним процессам
+      alarm(timeout);
+      sleep(timeout);
     }
+
+
+
+  while (active_child_processes > 0) {
+      wait(NULL);
+      active_child_processes -= 1;
   }
-    else{
-        while (active_child_processes > 0) {
-            wait(NULL);
-            active_child_processes -= 1;
-        }
-    }
+
 
 
   struct MinMax min_max;
